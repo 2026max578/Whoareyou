@@ -1,0 +1,268 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>男性角色心測 - 你最匹配誰？</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: system-ui, sans-serif; }
+    .option-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .option-label:hover {
+      background: #f0f9ff;
+      border-color: #bfdbfe;
+    }
+    .option-label input:checked + span {
+      font-weight: 600;
+      color: #4f46e5;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 min-h-screen py-8 px-4">
+
+<div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
+
+  <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-8 text-center">
+    <h1 class="text-3xl sm:text-4xl font-bold mb-3">男性角色心測</h1>
+    <p class="text-lg opacity-90">13 道題，測出你內心最共鳴的那個他</p>
+  </div>
+
+  <div id="loading" class="p-12 text-center text-gray-600 text-xl animate-pulse">
+    正在載入題目，請稍候...
+  </div>
+
+  <form id="quizForm" class="p-6 sm:p-10 space-y-8 hidden"></form>
+
+  <div id="result" class="hidden p-8 sm:p-12 bg-gray-50 border-t text-center">
+    <h2 class="text-3xl font-bold text-indigo-700 mb-10">你的心之所向</h2>
+    <div id="scores" class="space-y-6 max-w-2xl mx-auto"></div>
+    <div class="mt-12">
+      <p class="text-xl font-medium mb-4">你最匹配的角色是：</p>
+      <div id="best" class="text-4xl sm:text-5xl font-bold mb-2"></div>
+      <div id="bestScore" class="text-lg text-gray-600"></div>
+    </div>
+    <button onclick="location.reload()" class="mt-10 px-8 py-4 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded-xl font-medium text-lg transition">
+      重新測一次
+    </button>
+  </div>
+
+</div>
+
+<script>
+const roles = {
+  "陳奕珩": { color: "#6366f1", emoji: "♟️" },
+  "顧無言": { color: "#8b5cf6", emoji: "🖤" },
+  "陸川": { color: "#ec4899", emoji: "🗡️" }
+};
+
+const questions = [
+  { q: "1. 你最喜歡的愛人的類型是？", options: [
+    { text: "溫柔似水，看上去便很有保護欲。", score: { "陳奕珩": 5 } },
+    { text: "聰明機敏，是讓你欣賞並迷戀的存在。", score: { "顧無言": 5 } },
+    { text: "驕傲自信，與你勢均力敵，卻能拿捏你的心。", score: { "陸川": 5 } }
+  ]},
+  { q: "2. 你如何看待「復仇」？", options: [
+    { text: "哪怕自我毀滅，也要讓仇敵血債血償。", score: { "顧無言": 10 } },
+    { text: "精密布局數十年，讓仇敵自食惡果。", score: { "陳奕珩": 10 } },
+    { text: "將自己訓練成武器，時刻準備手刃敵人。", score: { "陸川": 10 } }
+  ]},
+  { q: "3. 被迫與愛人敵對時，你的选择是：", options: [
+    { text: "暗中保護她，哪怕被她憎恨。", score: { "陳奕珩": 5 } },
+    { text: "寧願犧牲生命，也不願成為敵人。", score: { "顧無言": 5 } },
+    { text: "無法放棄信念，除非死亡。", score: { "陸川": 5 } }
+  ]},
+  { q: "4. 你最大的心魔來自：", options: [
+    { text: "父親的否定和兄長的壓迫。", score: { "陳奕珩": 10 } },
+    { text: "童年被虐待的陰影。", score: { "顧無言": 10 } },
+    { text: "親眼看見親人慘死的無力感。", score: { "陸川": 10 } }
+  ]},
+  { q: "5. 你寧願被誤解為：", options: [
+    { text: "冷血無情的商人。", score: { "陳奕珩": 5 } },
+    { text: "家族操縱的傀儡。", score: { "顧無言": 5 } },
+    { text: "風流墮落的紈絝子弟。", score: { "陸川": 15 } }
+  ]},
+  { q: "6. 你希望墓碑上刻什麼？", options: [
+    { text: "「棋手动情時，便是曲終人散」。", score: { "陳奕珩": 10 } },
+    { text: "「生於黑暗，卻還妄想成為一個人的光」。", score: { "顧無言": 10 } },
+    { text: "「要麼贏到最後一局，要麼輸得屍骨無存」。", score: { "陸川": 10 } }
+  ]},
+  { q: "7. 你理解的守護是？", options: [
+    { text: "成為她計劃中的棋子。", score: { "陳奕珩": 10 } },
+    { text: "替她擋下所有黑暗。", score: { "顧無言": 10 } },
+    { text: "讓自己足夠強大。", score: { "陸川": 10 } }
+  ]},
+  { q: "8. 如果你只剩半年生命，你會：", options: [
+    { text: "隱瞞病情推開愛人，獨自承受痛苦。", score: { "陳奕珩": 10 } },
+    { text: "用最後時間向仇敵復仇，哪怕同歸於盡。", score: { "顧無言": 10 } },
+    { text: "暗中為所愛之人鋪路，用死亡換她餘生安穩。", score: { "陸川": 10 } }
+  ]},
+  { q: "9. 愛情中的身份偏好？", options: [
+    { text: "互相救贖的光", score: { "陳奕珩": 10 } },
+    { text: "默默守護者", score: { "顧無言": 10 } },
+    { text: "宿命感對手", score: { "陸川": 10 } }
+  ]},
+  { q: "10. 對「為愛染血」的態度？", options: [
+    { text: "用智力代替暴力", score: { "陳奕珩": 5 } },
+    { text: "我寧願自己墜入深淵", score: { "顧無言": 5 } },
+    { text: "必要之惡", score: { "陸川": 5 } }
+  ]},
+  { q: "11. 你的親友愛哪個排名更靠前？", options: [
+    { text: "愛情", score: { "陳奕珩": 10, "陸川": 10 } },
+    { text: "親情", score: { "顧無言": 10, "陸川": 5 } },
+    { text: "友情", score: { "陸川": 10, "顧無言": 5 } }
+  ]},
+  { q: "12. 更想體驗哪種高光時刻？", options: [
+    { text: "親手拯救愛人，為愛人豁出性命。", score: { "陳奕珩": 10 } },
+    { text: "親手審判仇人，訴盡心中不甘。", score: { "顧無言": 10 } },
+    { text: "眾星捧月，享受著所有的愛和恨。", score: { "陸川": 10 } }
+  ]},
+  { q: "13. 你不能接受的雷點是？（可複選）", multiple: true, options: [
+    { text: "抗壓", score: { "顧無言": -50 } },
+    { text: "不純愛", score: { "陳奕珩": -20 } },
+    { text: "被無條件付出", score: { "陸川": -20 } },
+    { text: "雄競", score: { "陳奕珩": -30, "陸川": -20 } },
+    { text: "道德感低", score: { "陸川": -20, "顧無言": -20 } },
+    { text: "CP會和其他異性互動", score: { "陳奕珩": -50 } },
+    { text: "以上我都能接受", score: {} }
+  ]}
+];
+
+function renderQuestions() {
+  try {
+    const form = document.getElementById("quizForm");
+    form.innerHTML = "";
+
+    questions.forEach((qItem, qIndex) => {
+      const qDiv = document.createElement("div");
+      qDiv.className = "bg-white rounded-xl border border-gray-200 p-6 shadow-sm";
+
+      const title = document.createElement("h3");
+      title.className = "text-xl sm:text-2xl font-bold mb-5 text-gray-800";
+      title.textContent = qItem.q;
+      qDiv.appendChild(title);
+
+      const group = `q${qIndex + 1}`;
+
+      qItem.options.forEach((opt, optIndex) => {
+        const label = document.createElement("label");
+        label.className = "option-label";
+
+        const input = document.createElement("input");
+        input.type = qItem.multiple ? "checkbox" : "radio";
+        input.name = group;
+        input.value = optIndex;
+
+        const span = document.createElement("span");
+        span.textContent = opt.text;
+
+        label.appendChild(input);
+        label.appendChild(span);
+        qDiv.appendChild(label);
+      });
+
+      form.appendChild(qDiv);
+    });
+
+    const submitDiv = document.createElement("div");
+    submitDiv.className = "text-center pt-8";
+    submitDiv.innerHTML = `
+      <button type="button" onclick="calculateResult()" 
+        class="px-10 py-5 bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-bold rounded-xl shadow-lg transition active:scale-95">
+        提交測驗 → 查看結果
+      </button>
+      <p id="errorMsg" class="mt-4 text-red-600 font-medium hidden">請完成所有題目再提交！</p>
+    `;
+    form.appendChild(submitDiv);
+
+    document.getElementById("loading").classList.add("hidden");
+    form.classList.remove("hidden");
+  } catch (err) {
+    console.error("產生題目失敗:", err);
+    document.getElementById("loading").innerHTML = "載入失敗，請重新整理<br>錯誤訊息：" + err.message;
+  }
+}
+
+function calculateResult() {
+  const errorMsg = document.getElementById("errorMsg");
+  errorMsg.classList.add("hidden");
+
+  const scores = { "陳奕珩": 0, "顧無言": 0, "陸川": 0 };
+  let allAnswered = true;
+
+  questions.forEach((q, idx) => {
+    const name = `q${idx + 1}`;
+    const inputs = document.querySelectorAll(`input[name="${name}"]`);
+
+    if (q.multiple) {
+      const checked = Array.from(inputs).filter(i => i.checked);
+      if (checked.length === 0) allAnswered = false;
+
+      const isNeutral = checked.some(i => i.value == q.options.length - 1);
+      if (isNeutral) return;
+
+      checked.forEach(i => {
+        const opt = q.options[parseInt(i.value)];
+        Object.entries(opt.score).forEach(([role, pt]) => {
+          scores[role] += pt;
+        });
+      });
+    } else {
+      const sel = document.querySelector(`input[name="${name}"]:checked`);
+      if (!sel) { allAnswered = false; return; }
+      const opt = q.options[parseInt(sel.value)];
+      Object.entries(opt.score).forEach(([role, pt]) => {
+        scores[role] += pt;
+      });
+    }
+  });
+
+  if (!allAnswered) {
+    errorMsg.classList.remove("hidden");
+    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+    return;
+  }
+
+  const maxScore = Math.max(...Object.values(scores));
+  const bestRoles = Object.keys(scores).filter(r => scores[r] === maxScore);
+
+  document.getElementById("quizForm").classList.add("hidden");
+  document.getElementById("result").classList.remove("hidden");
+
+  const container = document.getElementById("scores");
+  container.innerHTML = "";
+
+  Object.entries(scores).forEach(([role, score]) => {
+    const pct = Math.max(0, Math.min(100, Math.round((score + 200) / 400 * 100)));
+    container.innerHTML += `
+      <div class="flex items-center gap-4 mb-4">
+        <div class="w-32 text-right font-bold text-lg" style="color:${roles[role].color}">
+          ${roles[role].emoji} ${role}
+        </div>
+        <div class="flex-1 bg-gray-200 rounded-full h-6 overflow-hidden">
+          <div style="width:\( {pct}%; background: \){roles[role].color}; height:100%; transition:width 1.2s;"></div>
+        </div>
+        <div class="w-20 text-right font-bold text-lg">${score}</div>
+      </div>
+    `;
+  });
+
+  document.getElementById("best").textContent = bestRoles.map(r => `${roles[r].emoji} ${r}`).join("　／　");
+  document.getElementById("bestScore").textContent = `最高得分：${maxScore}`;
+}
+
+window.addEventListener("load", () => {
+  console.log("頁面載入完成，開始產生題目...");
+  setTimeout(renderQuestions, 400);
+});
+</script>
+</body>
+</html>
